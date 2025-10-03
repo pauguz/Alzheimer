@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/persona.dart';
-import '../services//api_service.dart';
+import '../services/api_service.dart';
 
 class SearchViewModel extends ChangeNotifier{
   final ApiService _apiService = ApiService();
