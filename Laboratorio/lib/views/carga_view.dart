@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import '../models/persona.dart';
+import 'menu_view.dart';
 
 class CargaView extends StatefulWidget {
-  const CargaView({super.key});
+  final Persona paciente;
+  const CargaView({super.key, required this.paciente});
+
 
   @override
   State<CargaView> createState() => _CargaViewState();
@@ -10,29 +14,26 @@ class CargaView extends StatefulWidget {
 class _CargaViewState extends State<CargaView> {
   String? _selectedExam;
   final List<String> _examTypes = [
-    "Examen 1",
-    "Examen 2",
-    "Examen 3",
+    "MRI",
+    "PET",
   ];
 
   @override
   Widget build(BuildContext context) {
+    final paciente=widget.paciente;
     return Scaffold(
+      appBar: AppBar(
+
+        title:  Text("Cargar imagen\n${paciente.nombre} ${paciente.apellido}"),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 32),
-              const Text(
-                "Cargar imagen",
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               // Lista desplegable
               DropdownButtonFormField<String>(
@@ -104,7 +105,20 @@ class _CargaViewState extends State<CargaView> {
                   ),
                 ),
               ),
+              // Botón salir
               const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey[300],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                child: const Text("Salir"),
+              ),
             ],
           ),
         ),

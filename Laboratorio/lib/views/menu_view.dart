@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'datos_view.dart';
 import 'carga_view.dart';
 import 'resultados_view.dart';
 import 'historial_view.dart';
+import '../models/persona.dart';
 
 class MenuView extends StatelessWidget {
-  const MenuView({super.key});
+  final Persona paciente;
+
+  const MenuView({super.key, required this.paciente});
 
   @override
   Widget build(BuildContext context) {
+    final paciente= this.paciente;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -16,12 +21,13 @@ class MenuView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 32),
-              const Text(
-                "Menu Principal",
-                style: TextStyle(
+              Text(
+                "Menu Principal - ${paciente.nombre} ${paciente.apellido}",
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
 
@@ -32,7 +38,7 @@ class MenuView extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const CargaView()),
+                    MaterialPageRoute(builder: (_) => CargaView(paciente: paciente,)),
                   );
                 },
               ),
@@ -45,7 +51,7 @@ class MenuView extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const HistorialView()),
+                    MaterialPageRoute(builder: (_) => HistorialView(paciente: paciente,)),
                   );
                 },
               ),
@@ -58,7 +64,18 @@ class MenuView extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const ResultadosView()),
+                    MaterialPageRoute(builder: (_) => ResultadosView(paciente: paciente,)),
+                  );
+                },
+              ),
+              // Botón Resultados
+              _MenuButton(
+                title: "Datos",
+                icon: Icons.bar_chart,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) =>  DatosPacienteView(paciente: paciente)),
                   );
                 },
               ),
@@ -90,8 +107,7 @@ class _MenuButton extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onTap,
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         title: Text(
           title,
           style: const TextStyle(
@@ -104,3 +120,4 @@ class _MenuButton extends StatelessWidget {
     );
   }
 }
+

@@ -10,6 +10,7 @@ class SearchView extends StatefulWidget {
   @override
   State<SearchView> createState() => _SeleccionarPacienteViewState();
 }
+
 class _SeleccionarPacienteViewState extends State<SearchView> {
   @override
   void initState() {
@@ -45,7 +46,7 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
                   TextField(
                     onChanged: vm.filter,
                     decoration: InputDecoration(
-                      hintText: "Usuario",
+                      hintText: "Buscar paciente...",
                       prefixIcon: const Icon(Icons.search),
                       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                       border: OutlineInputBorder(
@@ -63,54 +64,35 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
                     child: vm.isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : vm.filtered.isEmpty
-                        ? const Center(child: Text("No hay Pacientes"))
-                        : GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 1,
-                      ),
+                        ? const Center(child: Text("No hay pacientes"))
+                        : ListView.builder(
                       itemCount: vm.filtered.length,
                       itemBuilder: (context, index) {
                         Persona p = vm.filtered[index];
                         return Card(
-                          elevation: 2,
+                          elevation: 1,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
+                          child: ListTile(
+                            leading: const Icon(Icons.person, color: Colors.green),
+                            title: Text(
+                              "${p.nombre} ${p.apellido}",
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                             onTap: () {
-                              // Al seleccionar, navega a MenuView
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const MenuView(),
+                                  builder: (_) => MenuView(paciente: p),
                                 ),
                               );
-
-                              // También puedes guardar el paciente seleccionado en tu ViewModel si lo necesitas
-                              // vm.setPacienteSeleccionado(p);
                             },
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: Colors.green,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  p.nombre,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
+
                           ),
                         );
                       },
@@ -130,11 +112,13 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         ),
                         onPressed: () {
-                          // Acción de siguiente (podrías navegar al mismo MenuView)
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const MenuView()),
-                          );
+                          if (vm.filtered.isNotEmpty) {
+                            Persona p = vm.filtered.first; // Ejemplo: el primero
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (_) => MenuView(paciente: p)),
+                            );
+                          }
                         },
                         child: const Text("Siguiente"),
                       ),

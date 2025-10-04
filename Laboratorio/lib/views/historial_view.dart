@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
+import '../models/persona.dart';
 
 class HistorialView extends StatelessWidget {
   final List<String> imagenes;
-
-  const HistorialView({super.key, this.imagenes = const []});
+  final Persona paciente;
+  const HistorialView({super.key, this.imagenes = const [], required this.paciente});
 
   @override
   Widget build(BuildContext context) {
+    final paciente=this.paciente;
     return Scaffold(
       body: SafeArea(
+
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
               const SizedBox(height: 24),
-              const Text(
-                "Historial",
+               Text(
+                "Historial\n${paciente.nombre} ${paciente.apellido}",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

@@ -20,7 +20,7 @@ class LoginView extends StatelessWidget {
                 children: [
                   // Título principal
                   const Text(
-                    "Inicio de\nSesión",
+                    "Inicio de\nSesiófn",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,
