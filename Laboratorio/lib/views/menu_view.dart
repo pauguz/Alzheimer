@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'datos_view.dart';
 import 'carga_view.dart';
-import 'resultados_view.dart';
 import 'historial_view.dart';
+import 'datos_view.dart';
 import '../models/persona.dart';
 
 class MenuView extends StatelessWidget {
   final Persona paciente;
-
   const MenuView({super.key, required this.paciente});
 
   @override
   Widget build(BuildContext context) {
-    final paciente= this.paciente;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -22,52 +19,45 @@ class MenuView extends StatelessWidget {
             children: [
               const SizedBox(height: 32),
               Text(
-                "Menu Principal - ${paciente.nombre} ${paciente.apellido}",
+                "Menú Principal - ${paciente.nombre} ${paciente.apellido}",
+                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 28,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
-                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
 
               // Botón Nuevo análisis
               _MenuButton(
                 title: "Nuevo análisis",
-                icon: Icons.image,
+                icon: Icons.add_a_photo,
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => CargaView(paciente: paciente,)),
+                    MaterialPageRoute(
+                      builder: (_) => CargaView(paciente: paciente),
+                    ),
                   );
                 },
               ),
               const SizedBox(height: 16),
 
-              // Botón Historial
+              // Botón Historial + Resultados
               _MenuButton(
                 title: "Historial",
                 icon: Icons.history,
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => HistorialView(paciente: paciente,)),
+                    MaterialPageRoute(
+                      builder: (_) => HistorialView(paciente: paciente),
+                    ),
                   );
                 },
               ),
               const SizedBox(height: 16),
 
-              // Botón Resultados
-              _MenuButton(
-                title: "Resultados",
-                icon: Icons.bar_chart,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => ResultadosView(paciente: paciente,)),
-                  );
-                },
-              ),
               // Botón Resultados
               _MenuButton(
                 title: "Datos",
@@ -107,17 +97,16 @@ class _MenuButton extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         title: Text(
           title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
         trailing: Icon(icon, size: 36),
       ),
     );
   }
 }
+
 

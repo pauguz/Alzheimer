@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/login_viewmodel.dart';
 import 'menu_view.dart';
+import 'registro_view.dart';
 import 'search_view.dart';
 
 class LoginView extends StatelessWidget {
@@ -20,7 +21,7 @@ class LoginView extends StatelessWidget {
                 children: [
                   // Título principal
                   const Text(
-                    "Inicio de\nSesiófn",
+                    "Inicio de\nSesión",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,
@@ -122,6 +123,11 @@ class LoginView extends StatelessWidget {
                       ),
                       onPressed: () {
                         // Navegación a pantalla de registro
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const RegistroView()),
+                        );
                       },
                       child: const Text(
                         "Registrarse",

@@ -103,25 +103,6 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        ),
-                        onPressed: () {
-                          if (vm.filtered.isNotEmpty) {
-                            Persona p = vm.filtered.first; // Ejemplo: el primero
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => MenuView(paciente: p)),
-                            );
-                          }
-                        },
-                        child: const Text("Siguiente"),
-                      ),
                       const SizedBox(width: 16),
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(

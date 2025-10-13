@@ -11,17 +11,41 @@ class DatosPacienteView extends StatefulWidget {
 }
 
 class _DatosPacienteViewState extends State<DatosPacienteView> {
+  final TextEditingController _sexoController = TextEditingController();
+  final TextEditingController _correoController = TextEditingController();
+  final TextEditingController _fechaNacimientoController = TextEditingController();
   String? _antecedentes;
-  String? _estadoCivil;
   String? _alcohol;
-  final TextEditingController _edadController = TextEditingController();
-  final TextEditingController _educacionController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _sexoController.text = widget.paciente.sexo;
+    _correoController.text = widget.paciente.correo;
+  }
 
   @override
   void dispose() {
-    _edadController.dispose();
-    _educacionController.dispose();
+    _sexoController.dispose();
+    _correoController.dispose();
+    _fechaNacimientoController.dispose();
     super.dispose();
+  }
+
+  Future<void> _seleccionarFecha(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime(1980),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _fechaNacimientoController.text =
+        "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+      });
+    }
   }
 
   @override
@@ -47,23 +71,25 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                 ),
                 const SizedBox(height: 32),
 
-                // Campo: Sexo (solo lectura)
+                // Campo: Sexo (editable)
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text("Sexo",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      )),
+                  child: Text(
+                    "Sexo",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextField(
-                  controller: TextEditingController(text: paciente.sexo),
-                  readOnly: true,
+                  controller: _sexoController,
                   decoration: InputDecoration(
+                    hintText: "Ingrese sexo (Masculino / Femenino)",
                     filled: true,
-                    fillColor: Colors.grey[200],
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -71,26 +97,70 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                 ),
                 const SizedBox(height: 20),
 
-                // Antecedentes familiares (Si/No)
+                // Campo: Correo de contacto (editable)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Correo de contacto",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _correoController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    hintText: "Ingrese correo electrónico",
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Campo: Fecha de nacimiento (datepicker)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Fecha de nacimiento",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _fechaNacimientoController,
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    hintText: "Seleccione una fecha",
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () => _seleccionarFecha(context),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Antecedentes familiares (Sí / No)
                 _buildDropdown(
                   "Antecedentes familiares",
                   ["Sí", "No"],
                   _antecedentes,
                       (val) => setState(() => _antecedentes = val),
-                ),
-
-                // Edad (numérico)
-                _buildNumeric("Edad", _edadController),
-
-                // Años de educación (numérico)
-                _buildNumeric("Años de educación", _educacionController),
-
-                // Estado civil (dropdown)
-                _buildDropdown(
-                  "Estado civil",
-                  ["Soltero", "Casado", "Viudo", "Divorciado"],
-                  _estadoCivil,
-                      (val) => setState(() => _estadoCivil = val),
                 ),
 
                 // Consumo de alcohol (dropdown)
@@ -115,18 +185,31 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                       ),
                     ),
                     onPressed: () {
-                      print("Sexo: ${paciente.sexo}");
+                      print("Sexo: ${_sexoController.text}");
+                      print("Correo: ${_correoController.text}");
+                      print("Fecha de nacimiento: ${_fechaNacimientoController.text}");
                       print("Antecedentes: $_antecedentes");
-                      print("Edad: ${_edadController.text}");
-                      print("Educación: ${_educacionController.text}");
-                      print("Estado civil: $_estadoCivil");
                       print("Alcohol: $_alcohol");
                     },
                     child: const Text(
-                      "Siguiente",
+                      "Guardar",
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
+                ),
+
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text("Salir"),
                 ),
               ],
             ),
@@ -161,30 +244,6 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
           ))
               .toList(),
           onChanged: onChanged,
-        ),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  Widget _buildNumeric(String label, TextEditingController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            hintText: "Ingrese $label",
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-          ),
         ),
         const SizedBox(height: 20),
       ],
