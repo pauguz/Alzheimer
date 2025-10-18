@@ -4,7 +4,7 @@ import 'resultados_view.dart';
 
 class HistorialView extends StatelessWidget {
   final List<String> imagenes;
-  final Persona paciente;
+  final Paciente paciente;
 
   const HistorialView({
     super.key,
@@ -27,7 +27,7 @@ class HistorialView extends StatelessWidget {
             children: [
               const SizedBox(height: 24),
               Text(
-                "Historial y Resultados\n${paciente.nombre} ${paciente.apellido}",
+                "Historial y Resultados\n${paciente.nombre} ${paciente.apellidos}",
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 26,

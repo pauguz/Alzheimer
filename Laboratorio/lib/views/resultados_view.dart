@@ -3,7 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../models/persona.dart';
 
 class ResultadosView extends StatelessWidget {
-  final Persona paciente;
+  final Paciente paciente;
   final String? imagenOriginalUrl;
   final String? heatmapUrl;
 
@@ -36,151 +36,132 @@ class ResultadosView extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 16),
 
-              // 🔹 Título
-              Text(
-                "Resultados\n${paciente.nombre} ${paciente.apellido}",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
+                // 🔹 Título
+                Text(
+                  "Resultados\n${paciente.nombre} ${paciente.apellidos}",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // 🔹 Dos imágenes lado a lado
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildImageCard(
-                      title: "MRI",
-                      imageUrl: imagenOriginalUrl,
-                      assetPlaceholder: "../../assets/images/MRI_of_Human_Brain.jpg",
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildImageCard(
-                      title: "Heatmap",
-                      imageUrl: heatmapUrl,
-                      assetPlaceholder: "../../assets/images/heatmap.jpg",
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // 🔹 Gráfico y explicación lado a lado
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // 🔹 Dos imágenes lado a lado
+                Row(
                   children: [
-                    // Gráfico circular
                     Expanded(
-                      flex: 3,
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 4,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: PieChart(
-                              PieChartData(
-                                sectionsSpace: 0,
-                                centerSpaceRadius: 0,
-                                sections: porcentajes.entries.map((entry) {
-                                  return PieChartSectionData(
-                                    color: colores[entry.key],
-                                    value: entry.value.toDouble(),
-                                    title: "${entry.key}\n${entry.value}%",
-                                    radius: 70,
-                                    titleStyle: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ),
-                        ),
+                      child: _buildImageCard(
+                        title: "MRI",
+                        imageUrl: imagenOriginalUrl,
+                        assetPlaceholder: "assets/images/MRI_of_Human_Brain.jpg",
                       ),
                     ),
-
                     const SizedBox(width: 16),
-
-                    // Explicación
                     Expanded(
-                      flex: 2,
-                      child: Card(
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                "Explicación:",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  child: Text(
-                                    "La imagen original representa el corte cerebral obtenido por MRI, "
-                                        "mientras que el mapa de calor resalta las áreas con mayor actividad "
-                                        "o cambios patológicos potenciales. "
-                                        "Los porcentajes indican la probabilidad estimada de cada clase "
-                                        "de deterioro cognitivo según el análisis del modelo.",
-                                    textAlign: TextAlign.justify,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      child: _buildImageCard(
+                        title: "Heatmap",
+                        imageUrl: heatmapUrl,
+                        assetPlaceholder: "assets/images/heatmap.jpg",
                       ),
                     ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // 🔹 Botón volver
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[300],
+                // 🔹 Explicación bajo las imágenes
+                Card(
+                  elevation: 3,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Explicación:",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "La imagen original representa el corte cerebral obtenido por MRI, "
+                              "mientras que el mapa de calor resalta las áreas con mayor actividad "
+                              "o cambios patológicos potenciales. "
+                              "Los porcentajes indican la probabilidad estimada de cada clase "
+                              "de deterioro cognitivo según el análisis del modelo.",
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                child: const Text("Volver"),
-              ),
-            ],
+
+                const SizedBox(height: 24),
+
+                // 🔹 Gráfico circular centrado
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: PieChart(
+                        PieChartData(
+                          sectionsSpace: 0,
+                          centerSpaceRadius: 0,
+                          sections: porcentajes.entries.map((entry) {
+                            return PieChartSectionData(
+                              color: colores[entry.key],
+                              value: entry.value.toDouble(),
+                              title: "${entry.key}\n${entry.value}%",
+                              radius: 70,
+                              titleStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // 🔹 Botón volver
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text("Volver"),
+                ),
+              ],
+            ),
           ),
         ),
       ),

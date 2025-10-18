@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/search_viewmodel.dart';
 import '../models/persona.dart';
 import 'menu_view.dart';
+import 'datos_view.dart';
 
 class SearchView extends StatefulWidget {
   const SearchView({super.key});
@@ -17,7 +18,7 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
     super.initState();
     // carga las personas al iniciar
     Future.microtask(() =>
-        Provider.of<SearchViewModel>(context, listen: false).loadPersonas());
+        Provider.of<SearchViewModel>(context, listen: false).loadPacientes());
   }
 
   @override
@@ -68,7 +69,7 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
                         : ListView.builder(
                       itemCount: vm.filtered.length,
                       itemBuilder: (context, index) {
-                        Persona p = vm.filtered[index];
+                        Paciente p = vm.filtered[index];
                         return Card(
                           elevation: 1,
                           margin: const EdgeInsets.symmetric(vertical: 6),
@@ -78,14 +79,14 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
                           child: ListTile(
                             leading: const Icon(Icons.person, color: Colors.green),
                             title: Text(
-                              "${p.nombre} ${p.apellido}",
+                              "${p.nombre} ${p.apellidos}",
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             onTap: () {
-                              Navigator.pushReplacement(
+                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => MenuView(paciente: p),
@@ -100,6 +101,7 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
                   ),
 
                   const SizedBox(height: 12),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -112,7 +114,13 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         ),
                         onPressed: () {
-                          // acción de registrar
+                          // 🔹 Navegar a la pantalla de registro
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const DatosPacienteView(paciente: null, esRegistro: true),
+                            ),
+                          );
                         },
                         child: const Text("Registrar"),
                       ),

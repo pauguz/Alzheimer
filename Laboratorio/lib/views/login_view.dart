@@ -32,7 +32,7 @@ class LoginView extends StatelessWidget {
 
                   // Campo de usuario
                   TextField(
-                    onChanged: (value) => vm.email = value,
+                    onChanged: (value) => vm.username  = value,
                     decoration: const InputDecoration(
                       labelText: "Usuario",
                       hintText: "Ingrese su correo",

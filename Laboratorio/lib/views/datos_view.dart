@@ -1,34 +1,66 @@
 import 'package:flutter/material.dart';
 import '../models/persona.dart';
 
-class DatosPacienteView extends StatefulWidget {
-  final Persona paciente;
+import 'package:flutter/material.dart';
+import '../models/persona.dart';
 
-  const DatosPacienteView({super.key, required this.paciente});
+import 'package:flutter/material.dart';
+import '../models/persona.dart';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import '../models/persona.dart';
+import 'dart:math';
+
+class DatosPacienteView extends StatefulWidget {
+  final Paciente? paciente;
+  final bool esRegistro; // true = registro nuevo, false = edición
+
+  const DatosPacienteView({
+    super.key,
+    this.paciente,
+    this.esRegistro = false,
+  });
 
   @override
   State<DatosPacienteView> createState() => _DatosPacienteViewState();
 }
 
 class _DatosPacienteViewState extends State<DatosPacienteView> {
-  final TextEditingController _sexoController = TextEditingController();
   final TextEditingController _correoController = TextEditingController();
   final TextEditingController _fechaNacimientoController = TextEditingController();
+  final TextEditingController _codigoController = TextEditingController();
+
+  String? _sexo;
   String? _antecedentes;
   String? _alcohol;
 
   @override
   void initState() {
     super.initState();
-    _sexoController.text = widget.paciente.sexo;
-    _correoController.text = widget.paciente.correo;
+    /*
+    // Manejo seguro de paciente opcional
+    _sexo = widget.paciente?.sexo.isNotEmpty == true ? widget.paciente!.sexo : null;
+    _correoController.text = widget.paciente?.correo ?? '';
+    */
+
+    // Si es registro, generar código único
+    if (widget.esRegistro) {
+      _codigoController.text = _generarCodigoPaciente();
+    }
+  }
+
+  String _generarCodigoPaciente() {
+    final random = Random();
+    final numero = 10000 + random.nextInt(89999);
+    return "PAC$numero";
   }
 
   @override
   void dispose() {
-    _sexoController.dispose();
     _correoController.dispose();
     _fechaNacimientoController.dispose();
+    _codigoController.dispose();
     super.dispose();
   }
 
@@ -62,7 +94,9 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
               children: [
                 const SizedBox(height: 32),
                 Text(
-                  "Datos del Paciente\n${paciente.nombre} ${paciente.apellido}",
+                  widget.esRegistro
+                      ? "Registro de Nuevo Paciente"
+                      : "Editar Datos de Paciente\n${paciente?.nombre ?? ''} ${paciente?.apellidos ?? ''}",
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 26,
@@ -71,60 +105,23 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                 ),
                 const SizedBox(height: 32),
 
-                // Campo: Sexo (editable)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Sexo",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[700],
-                    ),
-                  ),
+                // 🔹 Campo: Sexo (Sí/No)
+                _buildDropdown(
+                  "Sexo",
+                  ["Masculino", "Femenino"],
+                  _sexo,
+                      (val) => setState(() => _sexo = val),
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _sexoController,
-                  decoration: InputDecoration(
-                    hintText: "Ingrese sexo (Masculino / Femenino)",
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
 
-                // Campo: Correo de contacto (editable)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Correo de contacto",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
+                // 🔹 Campo: Correo de contacto
+                _buildTextField(
+                  label: "Correo de contacto",
                   controller: _correoController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: "Ingrese correo electrónico",
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  hint: "Ingrese correo electrónico",
+                  keyboard: TextInputType.emailAddress,
                 ),
-                const SizedBox(height: 20),
 
-                // Campo: Fecha de nacimiento (datepicker)
+                // 🔹 Fecha de nacimiento
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -155,7 +152,7 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                 ),
                 const SizedBox(height: 20),
 
-                // Antecedentes familiares (Sí / No)
+                // 🔹 Antecedentes familiares (Sí / No)
                 _buildDropdown(
                   "Antecedentes familiares",
                   ["Sí", "No"],
@@ -163,17 +160,45 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                       (val) => setState(() => _antecedentes = val),
                 ),
 
-                // Consumo de alcohol (dropdown)
+                // 🔹 Consumo de alcohol (Sí / No)
                 _buildDropdown(
                   "Consumo de alcohol",
-                  ["Nunca", "Ocasional", "Frecuente"],
+                  ["Sí", "No"],
                   _alcohol,
                       (val) => setState(() => _alcohol = val),
                 ),
 
-                const SizedBox(height: 32),
+                // 🔹 Código del paciente (solo en registro)
+                if (widget.esRegistro) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Código de paciente",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _codigoController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
 
-                // Botón Guardar / Siguiente
+                const SizedBox(height: 24),
+
+                // 🔹 Botón Guardar / Siguiente
                 SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -185,11 +210,13 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                       ),
                     ),
                     onPressed: () {
-                      print("Sexo: ${_sexoController.text}");
+                      print("=== ${widget.esRegistro ? "REGISTRO NUEVO" : "ACTUALIZACIÓN"} ===");
+                      print("Sexo: $_sexo");
                       print("Correo: ${_correoController.text}");
-                      print("Fecha de nacimiento: ${_fechaNacimientoController.text}");
+                      print("Fecha nacimiento: ${_fechaNacimientoController.text}");
                       print("Antecedentes: $_antecedentes");
                       print("Alcohol: $_alcohol");
+                      if (widget.esRegistro) print("Código: ${_codigoController.text}");
                     },
                     child: const Text(
                       "Guardar",
@@ -200,9 +227,7 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
 
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey[300],
                     shape: RoundedRectangleBorder(
@@ -220,13 +245,15 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
   }
 
   // ---------- Helpers ----------
-  Widget _buildDropdown(String label, List<String> items, String? value,
-      ValueChanged<String?> onChanged) {
+  Widget _buildDropdown(
+      String label, List<String> items, String? value, ValueChanged<String?> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           decoration: InputDecoration(
@@ -249,4 +276,37 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
       ],
     );
   }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    TextInputType keyboard = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: keyboard,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
 }
+
+

@@ -3,28 +3,82 @@ import 'package:http/http.dart' as http;
 import '../models/persona.dart';
 import '../models/usuario.dart';
 
+class ApiService {
+  static const String baseUrl = 'https://alzheimer-api-j5o0.onrender.com';
+  String? _token; // Se guarda el token JWT tras el login
 
-class ApiService{
-  Future<Usuario?> validarUsuario(String email, String password) async{
-    final url= Uri.parse('https://raw.githubusercontent.com/petrlikperu/flutter/main/usuarios.json');
-    final response = await http.get(url);
+  /// LOGIN: obtiene token desde /token
+  Future<bool> login(String username, String password) async {
+    final url = Uri.parse('$baseUrl/token');
+    final body = {
+      'username': username,
+      'password': password,
+    };
 
-    if(response.statusCode ==200){
-      final List<dynamic> users = json.decode(response.body);
-      for (var jsonUser in users){
-        final user = Usuario.fromJson(jsonUser);
-        if(user.email==email && user.password==password){
-          return user;}
-      }
-      return null;
-    } else {throw Exception('Error al validar al usuario');}
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      _token = data['access_token'];
+      return true;
+    } else {
+      print('Error en login: ${response.body}');
+      return false;
+    }
   }
 
-  Future<List<Persona>> fetchPersonas() async{
-  final response= await http.get(Uri.parse('https://raw.githubusercontent.com/pruebaflutter1975/DATASETUNFV/main/personas.json'), );
-  if(response.statusCode==200){
-    final List data = json.decode(response.body);
-    return data.map((json)=> Persona.fromJson(json)).toList();
-  } else{throw Exception('Error al cargar personas');}
-}
+  /// OBTENER LISTA DE PACIENTES (requiere token válido)
+  Future<List<Paciente>> fetchPacientes() async {
+    if (_token == null) {
+      throw Exception('Debes iniciar sesión primero.');
+    }
+
+    final url = Uri.parse('$baseUrl/pacientes/');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $_token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Paciente.fromJson(json)).toList();
+    } else {
+      print('Error al obtener pacientes: ${response.body}');
+      throw Exception('Error al obtener pacientes');
+    }
+  }
+
+  /// (Opcional) Registrar usuario
+  Future<bool> registrarUsuario(
+      String nombreUsuario, String nombreCompleto, String contrasena) async {
+    final url = Uri.parse('$baseUrl/register/');
+    final body = jsonEncode({
+      'nombre_usuario': nombreUsuario,
+      'nombre_completo': nombreCompleto,
+      'contrasena': contrasena,
+    });
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    } else {
+      print('Error en registro: ${response.body}');
+      return false;
+    }
+  }
+
+  /// Getter del token (por si lo necesitas en otro servicio)
+  String? get token => _token;
 }

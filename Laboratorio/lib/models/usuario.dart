@@ -1,14 +1,27 @@
-class Usuario{
-  final String email;
-  final String password;
+class Usuario {
+  final String nombreUsuario;
+  final String nombreCompleto;
+  final String contrasena;
 
-  Usuario({required this.email, required this.password});
+  Usuario({
+    required this.nombreUsuario,
+    required this.nombreCompleto,
+    required this.contrasena,
+  });
 
-  factory Usuario.fromJson(Map<String, dynamic> json){
+  factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
-        email: json['email'] ?? '',
-        password: json['password']?? '',
+      nombreUsuario: json['nombre_usuario'] ?? '',
+      nombreCompleto: json['nombre_completo'] ?? '',
+      contrasena: json['contrasena'] ?? '',
     );
+  }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'nombre_usuario': nombreUsuario,
+      'nombre_completo': nombreCompleto,
+      'contrasena': contrasena,
+    };
   }
 }

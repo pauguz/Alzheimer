@@ -1,24 +1,39 @@
-class Persona{
+class Paciente {
+  final int? id;
   final String nombre;
-  final String apellido;
-  final String correo;
-  final String sexo;
-  final String telefono;
+  final String apellidos;
+  final String dni;
+  final String fechaNacimiento;
+  final String antecedentesFamiliares;
 
-  Persona({
+  Paciente({
+    this.id,
     required this.nombre,
-    required this.apellido,
-    required this.correo,
-    required this.sexo,
-    required this.telefono,
+    required this.apellidos,
+    required this.dni,
+    required this.fechaNacimiento,
+    required this.antecedentesFamiliares,
+  });
 
-});
-  factory Persona.fromJson(Map<String, dynamic> json){
-    return Persona(
-        nombre: json['nombre'] ?? '',
-        apellido: json['apellido']?? '',
-        correo: json['correo']?? '',
-        sexo: json['sexo']?? '',
-        telefono: json['telefono']?? '') ;
+  factory Paciente.fromJson(Map<String, dynamic> json) {
+    return Paciente(
+      id: json['id'],
+      nombre: json['nombre'] ?? '',
+      apellidos: json['apellidos'] ?? '',
+      dni: json['dni'] ?? '',
+      fechaNacimiento: json['fecha_nacimiento'] ?? '',
+      antecedentesFamiliares: json['antecedentes_familiares'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nombre': nombre,
+      'apellidos': apellidos,
+      'dni': dni,
+      'fecha_nacimiento': fechaNacimiento,
+      'antecedentes_familiares': antecedentesFamiliares,
+    };
   }
 }

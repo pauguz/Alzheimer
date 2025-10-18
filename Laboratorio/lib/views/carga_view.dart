@@ -3,7 +3,7 @@ import '../models/persona.dart';
 import 'menu_view.dart';
 
 class CargaView extends StatefulWidget {
-  final Persona paciente;
+  final Paciente paciente;
   const CargaView({super.key, required this.paciente});
 
 
@@ -24,7 +24,7 @@ class _CargaViewState extends State<CargaView> {
     return Scaffold(
       appBar: AppBar(
 
-        title:  Text("Cargar imagen\n${paciente.nombre} ${paciente.apellido}"),
+        title:  Text("Cargar imagen\n${paciente.nombre} ${paciente.apellidos}"),
         centerTitle: true,
       ),
       body: SafeArea(

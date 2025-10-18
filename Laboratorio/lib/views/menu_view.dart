@@ -5,7 +5,7 @@ import 'datos_view.dart';
 import '../models/persona.dart';
 
 class MenuView extends StatelessWidget {
-  final Persona paciente;
+  final Paciente paciente;
   const MenuView({super.key, required this.paciente});
 
   @override
@@ -19,7 +19,7 @@ class MenuView extends StatelessWidget {
             children: [
               const SizedBox(height: 32),
               Text(
-                "Menú Principal - ${paciente.nombre} ${paciente.apellido}",
+                "Menú Principal - ${paciente.nombre} ${paciente.apellidos}",
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 26,
@@ -43,7 +43,7 @@ class MenuView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Botón Historial + Resultados
+              // Botón Historial
               _MenuButton(
                 title: "Historial",
                 icon: Icons.history,
@@ -58,16 +58,41 @@ class MenuView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Botón Resultados
+              // Botón Datos
               _MenuButton(
                 title: "Datos",
                 icon: Icons.bar_chart,
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) =>  DatosPacienteView(paciente: paciente)),
+                    MaterialPageRoute(
+                      builder: (_) => DatosPacienteView(paciente: paciente),
+                    ),
                   );
                 },
+              ),
+
+              const Spacer(), // 🔹 Empuja el botón al final
+
+              // 🔹 Botón Volver
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "Volver",
+                    style: TextStyle(color: Colors.deepPurple),
+                  ),
+                ),
               ),
             ],
           ),
@@ -108,5 +133,3 @@ class _MenuButton extends StatelessWidget {
     );
   }
 }
-
-
