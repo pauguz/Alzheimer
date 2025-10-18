@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../services/api_service.dart';
 import '../viewmodels/search_viewmodel.dart';
 import '../models/persona.dart';
 import 'menu_view.dart';
 import 'datos_view.dart';
 
 class SearchView extends StatefulWidget {
-  const SearchView({super.key});
+  final ApiService apiService;
+  const SearchView({required this.apiService, super.key});
 
   @override
   State<SearchView> createState() => _SeleccionarPacienteViewState();
@@ -18,7 +20,7 @@ class _SeleccionarPacienteViewState extends State<SearchView> {
     super.initState();
     // carga las personas al iniciar
     Future.microtask(() =>
-        Provider.of<SearchViewModel>(context, listen: false).loadPacientes());
+        Provider.of<SearchViewModel>(context, listen: false).loadPacientes(widget.apiService));
   }
 
   @override

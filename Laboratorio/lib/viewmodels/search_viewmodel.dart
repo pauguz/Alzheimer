@@ -3,38 +3,31 @@ import '../models/persona.dart';
 import '../services/api_service.dart';
 
 class SearchViewModel extends ChangeNotifier {
-  final ApiService _apiService;
-  List<Paciente> all = [];
-  List<Paciente> filtered = [];
   bool isLoading = false;
+  List<Paciente> pacientes = [];
+  List<Paciente> filtered = [];
 
-  SearchViewModel(this._apiService);
-
-  /// Carga los pacientes desde la API protegida
-  Future<void> loadPacientes() async {
-    isLoading = true;
-    notifyListeners();
-
+  Future<void> loadPacientes(ApiService api) async {
     try {
-      all = await _apiService.fetchPacientes();
-      filtered = all;
+      isLoading = true;
+      notifyListeners();
+
+      pacientes = await api.fetchPacientes();
+      filtered = pacientes;
     } catch (e) {
       print('Error al cargar pacientes: $e');
-      all = [];
-      filtered = [];
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    isLoading = false;
-    notifyListeners();
   }
 
-  /// Filtra pacientes localmente por nombre o apellido
   void filter(String query) {
-    final lowerQuery = query.toLowerCase();
-    filtered = all.where((p) {
-      final nombreCompleto = '${p.nombre} ${p.apellidos}'.toLowerCase();
-      return nombreCompleto.contains(lowerQuery);
-    }).toList();
+    filtered = pacientes
+        .where((p) =>
+    p.nombre.toLowerCase().contains(query.toLowerCase()) ||
+        p.apellidos.toLowerCase().contains(query.toLowerCase()))
+        .toList();
     notifyListeners();
   }
 }

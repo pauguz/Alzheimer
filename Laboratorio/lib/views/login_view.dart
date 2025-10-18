@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/login_viewmodel.dart';
 import 'menu_view.dart';
 import 'registro_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'search_view.dart';
 
 class LoginView extends StatelessWidget {
@@ -85,8 +86,8 @@ class LoginView extends StatelessWidget {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const SearchView()),
-                          );
+                              builder: (_) => SearchView(apiService: vm.apiService),
+                          ));
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(

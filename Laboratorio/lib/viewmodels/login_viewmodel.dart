@@ -11,6 +11,9 @@ class LoginViewModel extends ChangeNotifier {
 
   final ApiService _apiService = ApiService();
 
+  ApiService get apiService => _apiService;
+
+
   /// Intenta iniciar sesión usando el endpoint /token
   Future<bool> validateLogin() async {
     isLoading = true;
