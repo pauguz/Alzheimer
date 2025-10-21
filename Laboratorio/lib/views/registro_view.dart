@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+
 
 class RegistroView extends StatefulWidget {
   const RegistroView({super.key});
@@ -22,16 +25,13 @@ class _RegistroViewState extends State<RegistroView> {
     super.dispose();
   }
 
-  void _registrar() {
-    final nombre = _nombreController.text;
-    final correo = _correoController.text;
-    final contrasena = _contrasenaController.text;
-    final confirmar = _confirmarController.text;
+  Future<void> _registrar() async {
+    final nombre = _nombreController.text.trim();
+    final correo = _correoController.text.trim(); // suponiendo que esto será el nombre_usuario
+    final contrasena = _contrasenaController.text.trim();
+    final confirmar = _confirmarController.text.trim();
 
-    if (nombre.isEmpty ||
-        correo.isEmpty ||
-        contrasena.isEmpty ||
-        confirmar.isEmpty) {
+    if (nombre.isEmpty || correo.isEmpty || contrasena.isEmpty || confirmar.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Por favor completa todos los campos")),
       );
@@ -45,15 +45,47 @@ class _RegistroViewState extends State<RegistroView> {
       return;
     }
 
-    // Por ahora solo imprime los datos
-    print("Nombre: $nombre");
-    print("Correo: $correo");
-    print("Contraseña: $contrasena");
+    // Preparar los datos del body
+    final Map<String, dynamic> body = {
+      "nombre_usuario": correo,
+      "nombre_completo": nombre,
+      "contrasena": contrasena,
+    };
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Registro exitoso (simulado) ✅")),
-    );
+    try {
+      // Hacer la petición HTTP al backend
+      final url = Uri.parse("https://alzheimer-api-j5o0.onrender.com/register");
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      // Manejar respuesta
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Registro exitoso ✅")),
+        );
+
+        // (Opcional) volver a pantalla de login
+        Future.delayed(const Duration(seconds: 1), () {
+          Navigator.pop(context);
+        });
+      } else {
+        final data = jsonDecode(response.body);
+        String mensaje = data["detail"]?.toString() ?? "Error desconocido";
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $mensaje")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error de conexión: $e")),
+      );
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {

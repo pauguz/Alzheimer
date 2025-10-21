@@ -17,6 +17,8 @@ class MyApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
+        Provider<ApiService>(create: (_) => ApiService()),
+
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
         ChangeNotifierProvider(create: (_) => SearchViewModel()),
       ],

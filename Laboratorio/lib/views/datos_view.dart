@@ -1,16 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/persona.dart';
-
-import 'package:flutter/material.dart';
-import '../models/persona.dart';
-
-import 'package:flutter/material.dart';
-import '../models/persona.dart';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-import '../models/persona.dart';
-import 'dart:math';
+
 
 class DatosPacienteView extends StatefulWidget {
   final Paciente? paciente;
