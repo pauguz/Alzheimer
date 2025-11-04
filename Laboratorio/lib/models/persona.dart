@@ -5,6 +5,8 @@ class Paciente {
   final String dni;
   final String fechaNacimiento;
   final String antecedentesFamiliares;
+  final String sexo;
+  final String correo;
 
   Paciente({
     this.id,
@@ -13,6 +15,8 @@ class Paciente {
     required this.dni,
     required this.fechaNacimiento,
     required this.antecedentesFamiliares,
+    required this.sexo,
+    required this.correo,
   });
 
   factory Paciente.fromJson(Map<String, dynamic> json) {
@@ -22,6 +26,8 @@ class Paciente {
       apellidos: json['apellidos'] ?? '',
       dni: json['dni'] ?? '',
       fechaNacimiento: json['fecha_nacimiento'] ?? '',
+      sexo: json['sexo']??'',
+      correo: json['correo']??'',
       antecedentesFamiliares: json['antecedentes_familiares'] ?? '',
     );
   }

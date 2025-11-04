@@ -1,8 +1,8 @@
+import 'dart:math';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import '../models/persona.dart';
-import 'dart:math';
-
-
 
 class DatosPacienteView extends StatefulWidget {
   final Paciente? paciente;
@@ -30,13 +30,10 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
   @override
   void initState() {
     super.initState();
-    /*
-    // Manejo seguro de paciente opcional
-    _sexo = widget.paciente?.sexo.isNotEmpty == true ? widget.paciente!.sexo : null;
-    _correoController.text = widget.paciente?.correo ?? '';
-    */
 
-    // Si es registro, generar código único
+    _sexo = widget.paciente?.sexo;
+    _correoController.text = widget.paciente?.correo ?? '';
+
     if (widget.esRegistro) {
       _codigoController.text = _generarCodigoPaciente();
     }
@@ -67,8 +64,65 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
     if (pickedDate != null) {
       setState(() {
         _fechaNacimientoController.text =
-        "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+        "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
       });
+    }
+  }
+
+  // 🔹 Llamada al backend para crear paciente
+  Future<void> _crearPaciente() async {
+    final nombre = widget.paciente?.nombre ?? "SinNombre";
+    final apellidos = widget.paciente?.apellidos ?? "SinApellido";
+    final dni = _codigoController.text;
+    final correo = _correoController.text.trim();
+    final sexo = _sexo ?? "";
+    final fechaNacimiento = _fechaNacimientoController.text;
+    final antecedentes = _antecedentes ?? "";
+    final alcohol = _alcohol ?? "";
+
+    if (correo.isEmpty || sexo.isEmpty || fechaNacimiento.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor completa todos los campos obligatorios")),
+      );
+      return;
+    }
+
+    final Map<String, dynamic> body = {
+      "nombre": nombre,
+      "apellidos": apellidos,
+      "dni": dni,
+      "sexo": sexo,
+      "correo": correo,
+      "fecha_nacimiento": fechaNacimiento,
+      "antecedentes_familiares": antecedentes,
+    };
+
+    try {
+      final url = Uri.parse("https://alzheimer-api-j5o0.onrender.com/pacientes/");
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      debugPrint("Status code: ${response.statusCode}");
+      debugPrint("Response body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Paciente registrado correctamente ✅")),
+        );
+        Navigator.pop(context);
+      } else {
+        final data = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: ${data["detail"] ?? "Error desconocido"}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error de conexión: $e")),
+      );
     }
   }
 
@@ -97,15 +151,11 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                 ),
                 const SizedBox(height: 32),
 
-                // 🔹 Campo: Sexo (Sí/No)
-                _buildDropdown(
-                  "Sexo",
-                  ["Masculino", "Femenino"],
-                  _sexo,
-                      (val) => setState(() => _sexo = val),
-                ),
+                // 🔹 Campo: Sexo
+                _buildDropdown("Sexo", ["Masculino", "Femenino"], _sexo,
+                        (val) => setState(() => _sexo = val)),
 
-                // 🔹 Campo: Correo de contacto
+                // 🔹 Correo
                 _buildTextField(
                   label: "Correo de contacto",
                   controller: _correoController,
@@ -144,23 +194,12 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                 ),
                 const SizedBox(height: 20),
 
-                // 🔹 Antecedentes familiares (Sí / No)
-                _buildDropdown(
-                  "Antecedentes familiares",
-                  ["Sí", "No"],
-                  _antecedentes,
-                      (val) => setState(() => _antecedentes = val),
-                ),
+                _buildDropdown("Antecedentes familiares", ["Sí", "No"],
+                    _antecedentes, (val) => setState(() => _antecedentes = val)),
 
-                // 🔹 Consumo de alcohol (Sí / No)
-                _buildDropdown(
-                  "Consumo de alcohol",
-                  ["Sí", "No"],
-                  _alcohol,
-                      (val) => setState(() => _alcohol = val),
-                ),
+                _buildDropdown("Consumo de alcohol", ["Sí", "No"], _alcohol,
+                        (val) => setState(() => _alcohol = val)),
 
-                // 🔹 Código del paciente (solo en registro)
                 if (widget.esRegistro) ...[
                   Align(
                     alignment: Alignment.centerLeft,
@@ -190,7 +229,7 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
 
                 const SizedBox(height: 24),
 
-                // 🔹 Botón Guardar / Siguiente
+                // 🔹 Botón Guardar
                 SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -201,18 +240,18 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                         borderRadius: BorderRadius.circular(24),
                       ),
                     ),
-                    onPressed: () {
-                      print("=== ${widget.esRegistro ? "REGISTRO NUEVO" : "ACTUALIZACIÓN"} ===");
-                      print("Sexo: $_sexo");
-                      print("Correo: ${_correoController.text}");
-                      print("Fecha nacimiento: ${_fechaNacimientoController.text}");
-                      print("Antecedentes: $_antecedentes");
-                      print("Alcohol: $_alcohol");
-                      if (widget.esRegistro) print("Código: ${_codigoController.text}");
+                    onPressed: widget.esRegistro
+                        ? _crearPaciente
+                        : () {
+                      // futura función updatePaciente()
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Función de edición pendiente")),
+                      );
                     },
-                    child: const Text(
-                      "Guardar",
-                      style: TextStyle(color: Colors.white),
+                    child: Text(
+                      widget.esRegistro ? "Registrar Paciente" : "Guardar Cambios",
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
@@ -242,10 +281,8 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
+        Text(label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           decoration: InputDecoration(
@@ -278,10 +315,8 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
+        Text(label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
