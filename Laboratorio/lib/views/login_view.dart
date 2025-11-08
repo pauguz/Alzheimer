@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/login_viewmodel.dart';
 import 'registro_view.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'search_view.dart';
 
 class LoginView extends StatelessWidget {
@@ -81,7 +80,7 @@ class LoginView extends StatelessWidget {
                         // 🔹 Esperar un poquito para que se muestre el snackbar
                           await Future.delayed(const Duration(milliseconds: 500));
 
-                          // 🔹 Navegar a otra vista (ejemplo: SearchView)
+                          // Navegar a otra vista (ejemplo: SearchView)
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -122,11 +121,9 @@ class LoginView extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        // Navegación a pantalla de registro
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => const RegistroView()),
+                          MaterialPageRoute(builder: (context) => const RegistroView()),
                         );
                       },
                       child: const Text(

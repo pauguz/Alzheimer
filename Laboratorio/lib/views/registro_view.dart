@@ -53,37 +53,42 @@ class _RegistroViewState extends State<RegistroView> {
     };
 
     try {
-      // Hacer la petición HTTP al backend
-      final url = Uri.parse("https://alzheimer-api-j5o0.onrender.com/register");
+      final url = Uri.parse("https://alzheimer-api-j5o0.onrender.com/register/");
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
 
-      // Manejar respuesta
+      print("Status code: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Registro exitoso ✅")),
         );
-
-        // (Opcional) volver a pantalla de login
         Future.delayed(const Duration(seconds: 1), () {
           Navigator.pop(context);
         });
       } else {
-        final data = jsonDecode(response.body);
-        String mensaje = data["detail"]?.toString() ?? "Error desconocido";
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $mensaje")),
-        );
+        if (response.body.isNotEmpty) {
+          final data = jsonDecode(response.body);
+          String mensaje = data["detail"]?.toString() ?? "Error desconocido";
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error: $mensaje")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Error: respuesta vacía del servidor")),
+          );
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error de conexión: $e")),
       );
     }
+
   }
 
 

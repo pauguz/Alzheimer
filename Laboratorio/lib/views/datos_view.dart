@@ -19,6 +19,8 @@ class DatosPacienteView extends StatefulWidget {
 }
 
 class _DatosPacienteViewState extends State<DatosPacienteView> {
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _apellidoController = TextEditingController();
   final TextEditingController _correoController = TextEditingController();
   final TextEditingController _fechaNacimientoController = TextEditingController();
   final TextEditingController _codigoController = TextEditingController();
@@ -31,9 +33,12 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
   void initState() {
     super.initState();
 
+    _nombreController.text = widget.paciente?.nombre ?? '';
+    _apellidoController.text = widget.paciente?.apellidos ?? '';
     _sexo = widget.paciente?.sexo;
     _correoController.text = widget.paciente?.correo ?? '';
 
+    // Si es registro, generar código único
     if (widget.esRegistro) {
       _codigoController.text = _generarCodigoPaciente();
     }
@@ -47,6 +52,8 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
 
   @override
   void dispose() {
+    _nombreController.dispose();
+    _apellidoController.dispose();
     _correoController.dispose();
     _fechaNacimientoController.dispose();
     _codigoController.dispose();
@@ -71,8 +78,8 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
 
   // 🔹 Llamada al backend para crear paciente
   Future<void> _crearPaciente() async {
-    final nombre = widget.paciente?.nombre ?? "SinNombre";
-    final apellidos = widget.paciente?.apellidos ?? "SinApellido";
+    final nombre = _nombreController.text.trim();
+    final apellidos = _apellidoController.text.trim();
     final dni = _codigoController.text;
     final correo = _correoController.text.trim();
     final sexo = _sexo ?? "";
@@ -80,7 +87,7 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
     final antecedentes = _antecedentes ?? "";
     final alcohol = _alcohol ?? "";
 
-    if (correo.isEmpty || sexo.isEmpty || fechaNacimiento.isEmpty) {
+    if (nombre.isEmpty || apellidos.isEmpty || correo.isEmpty || sexo.isEmpty || fechaNacimiento.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Por favor completa todos los campos obligatorios")),
       );
@@ -151,9 +158,27 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                 ),
                 const SizedBox(height: 32),
 
-                // 🔹 Campo: Sexo
-                _buildDropdown("Sexo", ["Masculino", "Femenino"], _sexo,
-                        (val) => setState(() => _sexo = val)),
+                // 🔹 Nombre
+                _buildTextField(
+                  label: "Nombre",
+                  controller: _nombreController,
+                  hint: "Ingrese nombre del paciente",
+                ),
+
+                // 🔹 Apellidos
+                _buildTextField(
+                  label: "Apellidos",
+                  controller: _apellidoController,
+                  hint: "Ingrese apellidos del paciente",
+                ),
+
+                // 🔹 Sexo
+                _buildDropdown(
+                  "Sexo",
+                  ["Masculino", "Femenino"],
+                  _sexo,
+                      (val) => setState(() => _sexo = val),
+                ),
 
                 // 🔹 Correo
                 _buildTextField(
@@ -194,11 +219,19 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                 ),
                 const SizedBox(height: 20),
 
-                _buildDropdown("Antecedentes familiares", ["Sí", "No"],
-                    _antecedentes, (val) => setState(() => _antecedentes = val)),
+                _buildDropdown(
+                  "Antecedentes familiares",
+                  ["Sí", "No"],
+                  _antecedentes,
+                      (val) => setState(() => _antecedentes = val),
+                ),
 
-                _buildDropdown("Consumo de alcohol", ["Sí", "No"], _alcohol,
-                        (val) => setState(() => _alcohol = val)),
+                _buildDropdown(
+                  "Consumo de alcohol",
+                  ["Sí", "No"],
+                  _alcohol,
+                      (val) => setState(() => _alcohol = val),
+                ),
 
                 if (widget.esRegistro) ...[
                   Align(
@@ -243,7 +276,6 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
                     onPressed: widget.esRegistro
                         ? _crearPaciente
                         : () {
-                      // futura función updatePaciente()
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text("Función de edición pendiente")),
@@ -335,5 +367,4 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
     );
   }
 }
-
 
