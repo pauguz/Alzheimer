@@ -7,19 +7,21 @@ import 'views/login_view.dart';
 void main() {
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final apiService = ApiService(); // 🔹 un solo servicio compartido
-
     return MultiProvider(
       providers: [
         Provider<ApiService>(create: (_) => ApiService()),
 
-        ChangeNotifierProvider(create: (_) => LoginViewModel()),
+        ChangeNotifierProvider(
+          create: (context) => LoginViewModel(
+            Provider.of<ApiService>(context, listen: false),
+          ),
+        ),
+
         ChangeNotifierProvider(create: (_) => SearchViewModel()),
       ],
       child: MaterialApp(

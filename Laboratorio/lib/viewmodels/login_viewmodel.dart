@@ -9,8 +9,11 @@ class LoginViewModel extends ChangeNotifier {
   bool isLoggedIn = false;
   Usuario? currentUser;
 
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
 
+  LoginViewModel(this._apiService);
+  /// Acceso al token por si lo necesita otro ViewModel
+  String? get token => _apiService.token;
   ApiService get apiService => _apiService;
 
 
@@ -38,9 +41,6 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
     return isLoggedIn;
   }
-
-  /// Acceso al token por si lo necesita otro ViewModel
-  String? get token => _apiService.token;
 }
 
 

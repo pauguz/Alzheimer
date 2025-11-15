@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import '../viewmodels/login_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-
-// Asumo que tu modelo Paciente tiene al menos un campo 'id'.
-// Si no es así, ajústalo.
 import '../models/persona.dart';
 
 class CargaView extends StatefulWidget {
@@ -39,64 +38,35 @@ class _CargaViewState extends State<CargaView> {
     }
   }
 
-  /// Envía la imagen al backend para ser analizada.
-  Future<void> _analizarImagen() async {
-    if (_selectedFile == null || _selectedExam == null) {
+  Future<void> _analizarImagen(int? pacienteId) async {
+    final loginVM = Provider.of<LoginViewModel>(context, listen: false);
+    final token = loginVM.token ?? "";
+
+    if (token.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Por favor, selecciona un tipo de examen y una imagen.'),
-            backgroundColor: Colors.orange),
+        const SnackBar(content: Text("Error: no hay token. Inicie sesión nuevamente.")),
       );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    final url = Uri.parse(
+        "https://alzheimer-api-j5o0.onrender.com/pacientes/$pacienteId/analisis/"
+    );
 
-    try {
-      // IMPORTANTE: Debes gestionar el token de acceso de forma segura.
-      // Esto es solo un ejemplo. Idealmente, lo obtendrías de un provider
-      // o un gestor de estado después de que el usuario inicie sesión.
-      const String accessToken = "TU_ACCESS_TOKEN_AQUI";
+    final req = http.MultipartRequest("POST", url);
+    req.headers["Authorization"] = "Bearer $token";
 
-      final uri = Uri.parse(
-          'https://alzheimer-api-j5o0.onrender.com/pacientes/${widget.paciente.id}/analisis/');
-          
-      var request = http.MultipartRequest('POST', uri)
-        ..headers['Authorization'] = 'Bearer $accessToken'
-        ..files.add(
-          await http.MultipartFile.fromPath(
-            'file', // El nombre del campo que espera tu API
-            _selectedFile!.path,
-          ),
-        );
+    req.files.add(
+      await http.MultipartFile.fromPath("file", _selectedFile!.path),
+    );
 
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
+    final response = await req.send();
+    final body = await response.stream.bytesToString();
 
-      if (response.statusCode == 200) {
-        final data = json.decode(responseBody);
-        _showResultDialog(
-          "Análisis Exitoso ✅", 
-          "Resultado: ${data['resultado_tecnico']}\n\nExplicación: ${data['resultado_explicado']}"
-        );
-      } else {
-        final errorData = json.decode(responseBody);
-        _showResultDialog(
-          "Error en el Análisis ❌", 
-          "Código: ${response.statusCode}\nError: ${errorData['detail'] ?? 'No se pudo procesar la solicitud.'}"
-        );
-      }
-    } catch (e) {
-      _showResultDialog("Error de Conexión 🔌",
-          "No se pudo conectar con el servidor. Verifica tu conexión a internet.\nDetalle: $e");
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    print("STATUS: ${response.statusCode}");
+    print("BODY: $body");
   }
+
 
   /// Muestra un diálogo con el resultado del análisis.
   void _showResultDialog(String title, String content) {
@@ -208,7 +178,9 @@ class _CargaViewState extends State<CargaView> {
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
-                  onPressed: (_selectedFile != null && !_isLoading) ? _analizarImagen : null,
+                  onPressed: (_selectedFile != null && !_isLoading)
+                      ? () => _analizarImagen(widget.paciente.id)
+                      : null,
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(

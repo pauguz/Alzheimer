@@ -1,7 +1,11 @@
 import 'dart:math';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../viewmodels/login_viewmodel.dart';
+
 import 'package:flutter/material.dart';
+
 import '../models/persona.dart';
 
 class DatosPacienteView extends StatefulWidget {
@@ -78,6 +82,7 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
 
   // 🔹 Llamada al backend para crear paciente
   Future<void> _crearPaciente() async {
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
     final nombre = _nombreController.text.trim();
     final apellidos = _apellidoController.text.trim();
     final dni = _codigoController.text;
@@ -108,7 +113,10 @@ class _DatosPacienteViewState extends State<DatosPacienteView> {
       final url = Uri.parse("https://alzheimer-api-j5o0.onrender.com/pacientes/");
       final response = await http.post(
         url,
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
         body: jsonEncode(body),
       );
 

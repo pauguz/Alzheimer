@@ -79,6 +79,6 @@ class ApiService {
     }
   }
 
-  /// Getter del token (por si lo necesitas en otro servicio)
+  /// Getter del token
   String? get token => _token;
 }
