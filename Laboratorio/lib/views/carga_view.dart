@@ -79,46 +79,62 @@ class _CargaViewState extends State<CargaView> {
 
       final resp = await req.send();
       print("📥 RESPUESTA RECIBIDA");
+      print("🔍 STATUS: ${resp.statusCode}");
 
       final body = await resp.stream.bytesToString();
       print("📄 BODY RAW: $body");
-      print("🔍 STATUS: ${resp.statusCode}");
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        final decoded = jsonDecode(utf8.decode(body.codeUnits));
-        print("🧩 ANALISIS OBTENIDO: $decoded");
+        try {
+          // El body ya es un String, no necesitamos utf8.decode
+          final decoded = jsonDecode(body);
+          print("🧩 ANALISIS OBTENIDO: $decoded");
 
-        final analysis = Analysis.fromJson(decoded);
+          final analysis = Analysis.fromJson(decoded);
 
-        // --- SANITIZACIÓN DE LA RUTA ---
-        final rutaLimpia = limpiarRuta(decoded["ruta_imagen_mri"]);
-        final fullMRI = rutaLimpia != null
-            ? "https://alzheimer-api-j5o0.onrender.com/$rutaLimpia"
-            : null;
+          // --- SANITIZACIÓN DE LA RUTA ---
+          final rutaLimpia = limpiarRuta(decoded["ruta_imagen_mri"]);
+          final fullMRI = rutaLimpia != null
+              ? "https://alzheimer-api-j5o0.onrender.com/$rutaLimpia"
+              : null;
 
-        if (fullMRI == null || fullMRI.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("La imagen recibida no es válida")),
-          );
-          setState(() => _isLoading = false);
-          return;
-        }
+          if (fullMRI == null || fullMRI.isEmpty) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("La imagen recibida no es válida")),
+            );
+            setState(() => _isLoading = false);
+            return;
+          }
 
-        // --- NAVEGACIÓN ---
-        if (!mounted) return;
-        print("↪ Navegando a ResultadosView...");
-        navigator.push(
-          MaterialPageRoute(
-            builder: (_) => ResultadosView(
-              paciente: widget.paciente,
-              imagenOriginalUrl: fullMRI,
-              analisis: analysis,
+          // --- NAVEGACIÓN ---
+          if (!mounted) return;
+          print("↪ Navegando a ResultadosView...");
+          navigator.push(
+            MaterialPageRoute(
+              builder: (_) => ResultadosView(
+                paciente: widget.paciente,
+                imagenOriginalUrl: fullMRI,
+                analisis: analysis,
+              ),
             ),
-          ),
-        );
+          );
+        } catch (jsonError) {
+          print("❌ ERROR AL DECODIFICAR JSON: $jsonError");
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Error al procesar la respuesta: $jsonError\nBody: $body"),
+            ),
+          );
+        }
       } else {
+        print("❌ ERROR HTTP: Status ${resp.statusCode}");
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $body")),
+          SnackBar(
+            content: Text("Error del servidor (${resp.statusCode}): $body"),
+          ),
         );
       }
     } catch (e) {
