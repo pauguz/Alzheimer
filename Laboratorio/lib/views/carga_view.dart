@@ -81,7 +81,6 @@ class _CargaViewState extends State<CargaView> {
 
       final resp = await req.send();
       print("📥 RESPUESTA RECIBIDA");
-      print("🔍 STATUS: ${resp.statusCode}");
 
       final body = await resp.stream.bytesToString();
       print("📄 BODY RAW: $body");
@@ -107,20 +106,19 @@ class _CargaViewState extends State<CargaView> {
         }
 
 
-          // --- SANITIZACIÓN DE LA RUTA ---
-          final rutaLimpia = limpiarRuta(decoded["ruta_imagen_mri"]);
-          final fullMRI = rutaLimpia != null
-              ? "https://alzheimer-api-j5o0.onrender.com/$rutaLimpia"
-              : null;
+        // --- SANITIZACIÓN DE LA RUTA ---
+        final rutaLimpia = limpiarRuta(decoded["ruta_imagen_mri"]);
+        final fullMRI = rutaLimpia != null
+            ? "https://alzheimer-api-j5o0.onrender.com/$rutaLimpia"
+            : null;
 
-          if (fullMRI == null || fullMRI.isEmpty) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("La imagen recibida no es válida")),
-            );
-            setState(() => _isLoading = false);
-            return;
-          }
+        if (fullMRI == null || fullMRI.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("La imagen recibida no es válida")),
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
 
         // --- NAVEGACIÓN ---
         if (!mounted) return;
@@ -134,23 +132,13 @@ class _CargaViewState extends State<CargaView> {
               imagenOriginalUrl: fullMRI,
               analisis: analysis,
             ),
-          );
-        } catch (jsonError) {
-          print("❌ ERROR AL DECODIFICAR JSON: $jsonError");
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Error al procesar la respuesta: $jsonError\nBody: $body"),
-            ),
-          );
-        }
+          ),
+        );
       } else {
         print("⛔ NO ENTRA AL IF. REASON: resp.statusCode = ${resp.statusCode}");
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error del servidor (${resp.statusCode}): $body"),
-          ),
+          SnackBar(content: Text("Error: $body")),
         );
       }
     } catch (e) {
