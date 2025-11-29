@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../models/persona.dart';
+import '../models/analisis.dart';
+import 'resultados_view.dart';
 
 class CargaView extends StatefulWidget {
   final Paciente paciente;
@@ -17,14 +19,8 @@ class CargaView extends StatefulWidget {
 }
 
 class _CargaViewState extends State<CargaView> {
-  String? _selectedExam;
   File? _selectedFile;
   bool _isLoading = false;
-
-  final List<String> _examTypes = [
-    "MRI",
-    // "PET", // Puedes añadir más si tu backend los soporta
-  ];
 
   /// Abre el selector de archivos para que el usuario elija una imagen.
   Future<void> _pickImage() async {
@@ -38,59 +34,113 @@ class _CargaViewState extends State<CargaView> {
     }
   }
 
+  String? limpiarRuta(String? ruta) {
+    if (ruta == null) return null;
+
+    return ruta
+        .trim()
+        .replaceAll("\u0000", "")
+        .replaceAll("\n", "")
+        .replaceAll("\r", "")
+        .replaceAll(" ", "")
+        .replaceAll("//", "/");
+  }
+
+  /// Envía la imagen al backend, espera el análisis y navega a ResultadosView
   Future<void> _analizarImagen(int? pacienteId) async {
+    if (_selectedFile == null) return;
+
+    setState(() => _isLoading = true);
+
     final loginVM = Provider.of<LoginViewModel>(context, listen: false);
     final token = loginVM.token ?? "";
 
     if (token.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error: no hay token. Inicie sesión nuevamente.")),
+        const SnackBar(content: Text("Debe iniciar sesión nuevamente.")),
       );
+      setState(() => _isLoading = false);
       return;
     }
 
     final url = Uri.parse(
-        "https://alzheimer-api-j5o0.onrender.com/pacientes/$pacienteId/analisis/"
+      "https://alzheimer-api-j5o0.onrender.com/pacientes/$pacienteId/analisis/",
     );
 
-    final req = http.MultipartRequest("POST", url);
-    req.headers["Authorization"] = "Bearer $token";
+    // Capturamos el Navigator antes del await
+    final navigator = Navigator.of(context);
 
-    req.files.add(
-      await http.MultipartFile.fromPath("file", _selectedFile!.path),
-    );
+    try {
+      print("⏳ INICIANDO ANALISIS...");
+      final req = http.MultipartRequest("POST", url);
+      req.headers["Authorization"] = "Bearer $token";
+      req.files.add(await http.MultipartFile.fromPath("file", _selectedFile!.path));
+      print("📤 ENVIANDO REQUEST...");
 
-    final response = await req.send();
-    final body = await response.stream.bytesToString();
+      final resp = await req.send();
+      print("📥 RESPUESTA RECIBIDA");
 
-    print("STATUS: ${response.statusCode}");
-    print("BODY: $body");
-  }
+      final body = await resp.stream.bytesToString();
+      print("📄 BODY RAW: $body");
+      print("🔍 STATUS: ${resp.statusCode}");
 
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        final decoded = jsonDecode(utf8.decode(body.codeUnits));
+        print("🧩 ANALISIS OBTENIDO: $decoded");
 
-  /// Muestra un diálogo con el resultado del análisis.
-  void _showResultDialog(String title, String content) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+        final analysis = Analysis.fromJson(decoded);
+
+        // --- SANITIZACIÓN DE LA RUTA ---
+        final rutaLimpia = limpiarRuta(decoded["ruta_imagen_mri"]);
+        final fullMRI = rutaLimpia != null
+            ? "https://alzheimer-api-j5o0.onrender.com/$rutaLimpia"
+            : null;
+
+        if (fullMRI == null || fullMRI.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("La imagen recibida no es válida")),
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        // --- NAVEGACIÓN ---
+        if (!mounted) return;
+        print("↪ Navegando a ResultadosView...");
+        navigator.push(
+          MaterialPageRoute(
+            builder: (_) => ResultadosView(
+              paciente: widget.paciente,
+              imagenOriginalUrl: fullMRI,
+              analisis: analysis,
+            ),
           ),
-        ],
-      ),
-    );
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $body")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
     final paciente = widget.paciente;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Cargar imagen\n${paciente.nombre} ${paciente.apellidos}", textAlign: TextAlign.center,),
+        title: Text(
+          "Cargar imagen\n${paciente.nombre} ${paciente.apellidos}",
+          textAlign: TextAlign.center,
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -99,39 +149,14 @@ class _CargaViewState extends State<CargaView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 24),
 
-              // Lista desplegable
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: "Tipo de examen",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                value: _selectedExam,
-                items: _examTypes
-                    .map((exam) => DropdownMenuItem(
-                          value: exam,
-                          child: Text(exam),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedExam = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               // Caja de carga de archivo
               Expanded(
                 child: Center(
                   child: InkWell(
                     onTap: _pickImage,
-                    borderRadius: BorderRadius.circular(16),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -142,27 +167,28 @@ class _CargaViewState extends State<CargaView> {
                         height: 250,
                         child: _selectedFile == null
                             ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(Icons.insert_drive_file_outlined,
-                                      size: 64, color: Colors.black54),
-                                  SizedBox(height: 12),
-                                  Text("Toca para seleccionar un archivo"),
-                                ],
-                              )
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.insert_drive_file_outlined,
+                                size: 64, color: Colors.black54),
+                            SizedBox(height: 12),
+                            Text("Toca para seleccionar un archivo"),
+                          ],
+                        )
                             : ClipRRect(
-                                borderRadius: BorderRadius.circular(16.0),
-                                child: Image.file(
-                                  _selectedFile!,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                ),
-                              ),
+                          borderRadius: BorderRadius.circular(16.0),
+                          child: Image.file(
+                            _selectedFile!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
+
               const SizedBox(height: 32),
 
               // Botón Analizar
@@ -184,27 +210,30 @@ class _CargaViewState extends State<CargaView> {
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                          "Analizar",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
+                    "Analizar",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
                 ),
               ),
-              // Botón salir
+
               const SizedBox(height: 16),
+
+              // Botón salir
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey[300],
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
-                  child: const Text("Salir", style: TextStyle(color: Colors.black87, fontSize: 16)),
+                  child: const Text(
+                    "Salir",
+                    style: TextStyle(color: Colors.black87, fontSize: 16),
+                  ),
                 ),
               ),
             ],
