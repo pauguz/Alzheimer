@@ -38,16 +38,18 @@ class _CargaViewState extends State<CargaView> {
     if (ruta == null) return null;
 
     return ruta
-        .trim()
-        .replaceAll("\u0000", "")
+        .replaceAll(RegExp(r'[\u0000-\u001F]'), '') // elimina caracteres de control
+        .replaceAll(" ", "")
         .replaceAll("\n", "")
         .replaceAll("\r", "")
-        .replaceAll(" ", "")
-        .replaceAll("//", "/");
+        .trim();
   }
+
 
   /// Envía la imagen al backend, espera el análisis y navega a ResultadosView
   Future<void> _analizarImagen(int? pacienteId) async {
+    print("🚨 ESTE ES EL ARCHIVO QUE SE ESTA EJECUTANDO");
+
     if (_selectedFile == null) return;
 
     setState(() => _isLoading = true);
@@ -83,12 +85,26 @@ class _CargaViewState extends State<CargaView> {
       final body = await resp.stream.bytesToString();
       print("📄 BODY RAW: $body");
       print("🔍 STATUS: ${resp.statusCode}");
-
+      print("📌 CODIGO REAL RESPUESTA: ${resp.statusCode}");
+      print("📌 TIPO DE STATUS: ${resp.statusCode.runtimeType}");
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        final decoded = jsonDecode(utf8.decode(body.codeUnits));
+        final decoded = jsonDecode(body) as Map<String, dynamic>;
         print("🧩 ANALISIS OBTENIDO: $decoded");
 
-        final analysis = Analysis.fromJson(decoded);
+        late Analysis analysis;
+        try {
+
+          analysis = Analysis.fromJson(decoded);
+          print("🟩 ANALYSIS CREADO CORRECTAMENTE");
+        } catch (e) {
+          print("❌ ERROR DENTRO DE Analysis.fromJson: $e");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error al procesar análisis: $e")),
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+
 
         // --- SANITIZACIÓN DE LA RUTA ---
         final rutaLimpia = limpiarRuta(decoded["ruta_imagen_mri"]);
@@ -106,7 +122,9 @@ class _CargaViewState extends State<CargaView> {
 
         // --- NAVEGACIÓN ---
         if (!mounted) return;
-        print("↪ Navegando a ResultadosView...");
+        print("RUTA ORIGINAL: '${decoded["ruta_imagen_mri"]}'");
+        print("RUTA LIMPIA: '$rutaLimpia'");
+        print("URL COMPLETA: '$fullMRI'");
         navigator.push(
           MaterialPageRoute(
             builder: (_) => ResultadosView(
@@ -117,6 +135,8 @@ class _CargaViewState extends State<CargaView> {
           ),
         );
       } else {
+        print("⛔ NO ENTRA AL IF. REASON: resp.statusCode = ${resp.statusCode}");
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error: $body")),
         );
