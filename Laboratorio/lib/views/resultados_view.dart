@@ -18,6 +18,7 @@ class ResultadosView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(imagenOriginalUrl);
     return Scaffold(
       body: SafeArea(
         child: Padding(
